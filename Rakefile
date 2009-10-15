@@ -6,11 +6,12 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "progress-monitor"
     gem.summary = %Q{Monitor Progress in the Command Line}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.description = %Q{Patches some each and collect functions of certain classes (Array, Hash, Integer) to report progress}
     gem.email = "miguel.vazquez@fdi.ucm.es"
     gem.homepage = "http://github.com/mikisvaz/progress-monitor"
     gem.authors = ["Miguel Vazquez"]
-    gem.add_development_dependency "thoughtbot-shoulda"
+
+    gem.files = Dir['lib/progress-monitor.rb','samples/*']
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 rescue LoadError
