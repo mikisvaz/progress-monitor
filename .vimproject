@@ -1,0 +1,14 @@
+Progress=/$PWD filter="*.rb" {
+ README.rdoc
+ lib=lib {
+  progress-monitor.rb
+ }
+ samples=samples {
+  collect.rb
+  file.rb
+  hash-loop.rb
+  skip.rb
+  times.rb
+  two-loops.rb
+ }
+}
