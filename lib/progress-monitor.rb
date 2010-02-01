@@ -16,6 +16,21 @@ class Progress
     @@progress_meters
   end
 
+  def self.caller_info(callers, depth = 0)
+    return [nil, nil] if callers.length <= depth
+
+    line = callers[depth]
+    if line.match(/(.*):\d+(?::in `(.*)')/)
+      return [$1, $2]
+    end
+
+    if line.match(/(.*):\d+/)
+      return [$1, nil ]
+    end
+
+    info
+  end
+
   @@monitor = false
   @@desc = ""
   @@skip = 0
@@ -24,25 +39,31 @@ class Progress
   #
   # If a description is given as a parameter it will show at the
   # beginning of the progress report.
-  def self.monitor(desc = "", num_reports = 100, skip = 0)
+  def self.monitor(desc = "", num_reports = 100, stack_depth = nil, skip = 0)
     @@monitor = true
     @@desc = desc
     @@num_reports=num_reports
+    @@call_info = caller_info(caller)
+    @@stack_depth = stack_depth 
     @@skip = skip
   end
 
   # Returns true if next loop must be monitored.
   #
   def self.active?
-    if @@monitor
-      if @@skip > 0
-        @@skip -= 1
-        return false
-      else
-        return true
-      end
-    else
+
+    return false unless @@monitor
+
+    if @@stack_depth != nil
+      call_info = caller_info(caller, @@stack_depth + 1)
+      return false if call_info != @@call_info
+    end
+
+    if @@skip > 0
+      @@skip -= 1
       return false
+    else
+      return true
     end
   end
 

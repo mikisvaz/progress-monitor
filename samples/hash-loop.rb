@@ -2,7 +2,7 @@
 # print stuff. In this case, we print new lines, and the progress meter
 # is always moved to the line above the last one.
 
-require File.join(File.dirname(File.dirname(__FILE__)), 'lib', 'progress-monitor')
+require File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'lib', 'progress-monitor')
 
 h = Hash.new
 
