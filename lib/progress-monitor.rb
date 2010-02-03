@@ -50,7 +50,7 @@ class Progress
 
   # Returns true if next loop must be monitored.
   #
-  def self.active?
+  def self.monitor?
 
     return false unless @@monitor
 
@@ -67,6 +67,17 @@ class Progress
     end
   end
 
+  def self.add_progress_meter(max)
+    progress_meter = self.new(max, progress_meters.size)
+
+    progress_meters.push(progress_meter)
+
+    progress_meter
+  end
+
+  def self.remove_last_meter
+    progress_meters.pop
+  end
 
   # Creates a new instance. Max is the total number of iterations of the
   # loop. The depth represents how many other loops are above this one,
@@ -91,7 +102,7 @@ class Progress
   def tick(steps = 1)
     @current += steps
     percent = @current.to_f/ @max.to_f
-    if percent - @last_report > 1.to_f/@num_reports.to_f then
+    if percent - @last_report > 1.to_f/@num_reports.to_f 
       report
       @last_report=percent
     end
@@ -100,7 +111,7 @@ class Progress
   def set(step)
     @current = step
     percent = @current.to_f/ @max.to_f
-    if percent - @last_report > 1.to_f/@num_reports.to_f then
+    if percent - @last_report > 1.to_f/@num_reports.to_f 
       report
       @last_report=percent
     end
@@ -145,19 +156,16 @@ class Progress
     $stderr.print("\033[#{@depth + 1}F\033[2K" + indicator + "\033[#{@depth + 1}E"  )
 
   end
-
-
 end
 
 class Integer
   alias :orig_times :times
 
   def times (&block)
-    if Progress.active?  then
-      progress_meters = Progress::progress_meters
-      progress_meters.push(Progress.new(self, progress_meters.size ))
-      orig_times {|w|block.call(w);progress_meters.last.tick;}
-      progress_meters.pop
+    if Progress.monitor?  
+      progress_meter = Progress.add_progress_meter(self)
+      orig_times {|w|block.call(w);progress_meter.tick;}
+      Progress.remove_last_meter
     else
       orig_times &block
     end
@@ -170,11 +178,10 @@ class Array
   alias :orig_each :each
 
   def each (&block)
-    if Progress.active?  then
-      progress_meters = Progress::progress_meters
-      progress_meters.push(Progress.new(self.length, progress_meters.size ))
-      orig_each {|w|block.call(w);progress_meters.last.tick;}
-      progress_meters.pop
+    if Progress.monitor?  
+      progress_meter = Progress.add_progress_meter(self.length)
+      orig_each {|w| block.call(w);progress_meter.tick; }
+      Progress.remove_last_meter
     else
       orig_each &block
     end
@@ -182,11 +189,10 @@ class Array
 
   alias :orig_collect :collect
   def collect (&block)
-    if Progress.active?  then
-      progress_meters = Progress::progress_meters
-      progress_meters.push(Progress.new(self.length, progress_meters.size ))
-      res = orig_collect {|w| r = block.call(w);progress_meters.last.tick; r}
-      progress_meters.pop
+    if Progress.monitor?  
+      progress_meter = Progress.add_progress_meter(self.length)
+      res = orig_collect {|w| r = block.call(w);progress_meter.tick; r }
+      Progress.remove_last_meter
       res
     else
       orig_collect &block
@@ -199,16 +205,14 @@ end
 class Hash
   alias :orig_each :each
   def each (&block)
-    if Progress.active?  then
-      progress_meters = Progress::progress_meters
-      progress_meters.push(Progress.new(self.length, progress_meters.size ))
-      orig_each {|k,v|block.call(k,v);progress_meters.last.tick;}
-      progress_meters.pop
+    if Progress.monitor?  
+      progress_meter = Progress.add_progress_meter(self.length)
+      orig_each {|k,v| block.call(k,v);progress_meter.tick; }
+      Progress.remove_last_meter
     else
       orig_each &block
     end
   end
-
 end
 
 
@@ -219,29 +223,25 @@ class File
   alias :orig_each :each
   alias :orig_collect :collect
   def each (&block)
-    if Progress.active?  then
-      progress_meters = Progress::progress_meters
-      progress_meters.push(Progress.new(self.stat.size, progress_meters.size ))
-      orig_each {|l| block.call(l);progress_meters.last.set(self.pos);}
-      progress_meters.pop
+    if Progress.monitor?  
+      progress_meter = Progress.add_progress_meter(self.stat.size)
+      orig_each {|l| block.call(l);progress_meter.set(self.pos);}
+      Progress.remove_last_meter
     else
       orig_each &block
     end
   end
 
   def collect (&block)
-    if Progress.active?  then
-      progress_meters = Progress::progress_meters
-      progress_meters.push(Progress.new(self.stat.size, progress_meters.size ))
-      res = orig_collect {|l| r = block.call(l);progress_meters.last.set(self.pos); r}
-      progress_meters.pop
+    if Progress.monitor?  then
+      progress_meter = Progress.add_progress_meter(self.stat.size)
+      res = orig_collect {|l| r = block.call(l);progress_meter.set(self.pos); r}
+      Progress.remove_last_meter
       res
     else
       orig_collect &block
     end
   end
-
-
 end
 
 
