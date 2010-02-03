@@ -3,7 +3,7 @@ require File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'lib',
 # Skip first loop
 puts ""
 
-Progress.monitor("Main Loop",100, nil, 1)
+Progress.monitor("Main Loop", :skip => 1)
 
 puts "This loop must not be monitored"
 puts

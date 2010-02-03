@@ -16,7 +16,7 @@ def self.loop2
 
 end
 
-Progress.monitor("Message", 100, 1)
+Progress.monitor("Message", :stack_depth => 1)
 puts "not monitored"
 100.times { 
   sleep 0.01 

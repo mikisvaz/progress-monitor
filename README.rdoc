@@ -1,6 +1,11 @@
 = progress-monitor
 
-Description goes here.
+Un-obtrusive progress monitor for the command line. Patch each, collect and
+times methods from different classes to produce loop progress reports. You may
+monitor loops that are close by, or set up monitoring for loops down the call
+stack so you do not need to modify the target class.
+
+See the samples directory for example scripts
 
 == Note on Patches/Pull Requests
  

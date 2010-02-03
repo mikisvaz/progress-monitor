@@ -4,7 +4,10 @@ Progress=/$PWD filter="*.rb" {
   progress-monitor.rb
  }
  samples=samples {
+  announce.rb
+  announce_monitor.rb
   collect.rb
+  depth.rb
   file.rb
   hash-loop.rb
   skip.rb
