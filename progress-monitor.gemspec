@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{progress-monitor}
-  s.version = "1.9.0"
+  s.version = "2.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Miguel Vazquez"]
-  s.date = %q{2010-02-01}
+  s.date = %q{2010-02-03}
   s.description = %q{Patches some each and collect functions of certain classes (Array, Hash, Integer) to report progress}
   s.email = %q{miguel.vazquez@fdi.ucm.es}
   s.extra_rdoc_files = [
@@ -18,6 +18,8 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     "lib/progress-monitor.rb",
+     "samples/announce.rb",
+     "samples/announce_monitor.rb",
      "samples/collect.rb",
      "samples/depth.rb",
      "samples/file.rb",
