@@ -27,8 +27,8 @@ class Progress
              monitor_step = nil unless defined? monitor_step
 
              res = self.send(orig_name.to_sym) {|v| 
-               progress_meter.tick(monitor_step) if progress_meter 
-               puts announcement.call(v)         if announcement
+               progress_meter.tick(monitor_step)               if progress_meter 
+               Progress.print_announcement(announcement.call(v))         if announcement
                block.call(v) 
              }
              
@@ -57,7 +57,7 @@ class Progress
 
              res = self.send(orig_name.to_sym) {|v1,v2| 
                progress_meter.tick(monitor_step) if progress_meter 
-               puts announcement.call(v1,v2)     if announcement
+               Progress.print_announcement(announcement.call(v1,v2))         if announcement
                block.call(v1,v2);
              }
              
@@ -237,12 +237,15 @@ class Progress
      used = (Time.now - @time).to_i
      used = [used/3600, used/60 % 60, used % 60].map{|t| t.to_s.rjust(2, '0')}.join(':')
 
-
-
      indicator += " (Time left #{eta} seconds) (Started #{used} seconds ago)"
 
-     $stderr.print("\033[#{@depth + 1}F\033[2K" + indicator + "\033[#{@depth + 1}E"  )
+     $stderr.print("\033[#{@depth + 1}F\033[2K" + indicator + "\033[#{@depth + 1}E")
+   end
 
+   def self.print_announcement(message = nil)
+     return if message.nil?
+     total_depth = @@progress_meters.length + 1
+     $stderr.print("\033[#{total_depth}F\033[2K" + message + "\033[#{total_depth}E")
    end
 end
 
