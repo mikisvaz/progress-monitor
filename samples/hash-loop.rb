@@ -10,7 +10,7 @@ h = Hash.new
   h[l] = l.upcase
 }
 
-Progress.monitor("hash",50)
+Progress.monitor("hash", :step => 50)
 h.each{|d,u|
   puts "#{d} => #{u}, "
   sleep(0.2)
