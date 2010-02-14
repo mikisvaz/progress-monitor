@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{progress-monitor}
-  s.version = "2.0.1"
+  s.version = "2.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Miguel Vazquez"]
-  s.date = %q{2010-02-08}
+  s.date = %q{2010-02-14}
   s.description = %q{Patches some each and collect functions of certain classes (Array, Hash, Integer) to report progress}
   s.email = %q{miguel.vazquez@fdi.ucm.es}
   s.extra_rdoc_files = [
