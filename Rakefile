@@ -11,7 +11,7 @@ begin
     gem.homepage = "http://github.com/mikisvaz/progress-monitor"
     gem.authors = ["Miguel Vazquez"]
 
-    gem.files = Dir['lib/progress-monitor.rb','samples/*']
+    gem.files = Dir['lib/progress-monitor.rb','lib/progress-bar.rb', 'samples/*']
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 rescue LoadError

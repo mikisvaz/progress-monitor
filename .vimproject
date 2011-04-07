@@ -1,6 +1,8 @@
 Progress=/$PWD filter="*.rb" {
  README.rdoc
+ Rakefile
  lib=lib {
+  progress-bar.rb
   progress-monitor.rb
  }
  samples=samples {

@@ -6,247 +6,178 @@
 # License:: MIT
 # 
 
+require 'progress-bar'
+
 # Tracks the progress of a loop. It holds information about how many
 # iterations it has to go through and how many have been executed
 # already. Every now and then, it prints the progress report.
-class Progress
+module Progress
 
-   module Progress::MonitorableProgress
+  module Progress::MonitorableProgress
 
-     def monitorable1(method_name)
-       module_eval{ 
-         orig_name =  ('orig_' + method_name.to_s).to_sym
-         
-         eval "alias #{ orig_name } #{ method_name }"
+    def monitorable1(method_name)
+      module_eval{ 
+        orig_name =  ('orig_' + method_name.to_s).to_sym
 
-         define_method(method_name) do |&block|
-           if Progress.active?
-             progress_meter = Progress.add_progress_meter(self.monitor_size) if Progress.monitor?
-             announcement   = Progress.get_announcement                      if Progress.announce?
+        eval "alias #{ orig_name } #{ method_name }"
 
-             monitor_step = nil unless defined? monitor_step
+        define_method(method_name) do |&block|
+        if Progress.active?
+          progress_meter = Progress.add_progress_meter(self.monitor_size) if Progress.monitor?
+          announcement   = Progress.get_announcement                      if Progress.announce?
 
-             res = self.send(orig_name.to_sym) {|v| 
-               progress_meter.tick(monitor_step)               if progress_meter 
-               Progress.print_announcement(announcement.call(v))         if announcement
-               block.call(v) 
-             }
-             
-             Progress.remove_last_meter
-             res
-           else
-             self.send(orig_name.to_sym) {|v| block.call(v)}
-           end
-         
-         end
-       }
-     end
+          monitor_step = nil unless defined? monitor_step
 
-     def monitorable2(method_name)
-       module_eval{ 
-         orig_name =  ('orig_' + method_name.to_s).to_sym
-         
-         eval "alias #{ orig_name } #{ method_name }"
-         
-         define_method(method_name) do |&block|
-           if Progress.active?
-             progress_meter = Progress.add_progress_meter(self.monitor_size) if Progress.monitor?
-             announcement   = Progress.get_announcement                      if Progress.announce?
-             
-             monitor_step = nil unless defined? monitor_step
+          res = self.send(orig_name.to_sym) {|v| 
+            progress_meter.tick(monitor_step)               if progress_meter 
+            Progress.print_announcement(announcement.call(v))         if announcement
+            block.call(v) 
+          }
 
-             res = self.send(orig_name.to_sym) {|v1,v2| 
-               progress_meter.tick(monitor_step) if progress_meter 
-               Progress.print_announcement(announcement.call(v1,v2))         if announcement
-               block.call(v1,v2);
-             }
-             
-             Progress.remove_last_meter
-             res
-           else
-             self.send(orig_name.to_sym) {|v1,v2| block.call(v1,v2) }
-           end
-         
-         end
-       }
-     end
-   end
+          Progress.remove_last_meter
+          res
+        else
+          self.send(orig_name.to_sym) {|v| block.call(v)}
+        end
+
+        end
+      }
+    end
+
+    def monitorable2(method_name)
+      module_eval{ 
+        orig_name =  ('orig_' + method_name.to_s).to_sym
+
+        eval "alias #{ orig_name } #{ method_name }"
+
+        define_method(method_name) do |&block|
+        if Progress.active?
+          progress_meter = Progress.add_progress_meter(self.monitor_size) if Progress.monitor?
+          announcement   = Progress.get_announcement                      if Progress.announce?
+
+          monitor_step = nil unless defined? monitor_step
+
+          res = self.send(orig_name.to_sym) {|v1,v2| 
+            progress_meter.tick(monitor_step) if progress_meter 
+            Progress.print_announcement(announcement.call(v1,v2))         if announcement
+            block.call(v1,v2);
+          }
+
+          Progress.remove_last_meter
+          res
+        else
+          self.send(orig_name.to_sym) {|v1,v2| block.call(v1,v2) }
+        end
+
+        end
+      }
+    end
+  end
 
 
-   @@progress_meters = Array.new
-   def self.progress_meters
-     @@progress_meters
-   end
-   
-   def self.caller_info(callers, depth = 0)
-     return [nil, nil] if callers.length <= depth
+  @@progress_meters = Array.new
+  def self.progress_meters
+    @@progress_meters
+  end
 
-     line = callers[depth]
-     if line.match(/(.*):\d+(?::in `(.*)')/)
-       return [$1, $2]
-     end
+  def self.caller_info(callers, depth = 0)
+    return [nil, nil] if callers.length <= depth
 
-     if line.match(/(.*):\d+/)
-       return [$1, nil ]
-     end
+    line = callers[depth]
+    if line.match(/(.*):\d+(?::in `(.*)')/)
+      return [$1, $2]
+    end
 
-     info
-   end
+    if line.match(/(.*):\d+/)
+      return [$1, nil ]
+    end
 
-   @@monitor  = false
-   @@announce = false
+    info
+  end
 
-   def self.process_options(options)
-     @@stack_depth = options[:stack_depth] 
-     @@skip        = options[:skip] || 0
+  @@monitor  = false
+  @@announce = false
 
-     if options[:announcement]
-       @@announce     = true
-       @@announcement = options[:announcement]
-     end
-   end
+  def self.process_options(options)
+    @@stack_depth = options[:stack_depth] 
+    @@skip        = options[:skip] || 0
 
-   # This function will activate monitoring of the next _supported_ loop.
-   #
-   # If a description is given as a parameter it will show at the
-   # beginning of the progress report.
-   def self.monitor(desc = "", options = {})
-     @@monitor     = true
-     @@desc        = desc
-     @@num_reports = options[:num_reports] || 100
-     @@call_info   = caller_info(caller)
-     process_options(options)
-   end
+    if options[:announcement]
+      @@announce     = true
+      @@announcement = options[:announcement]
+    end
+  end
 
-   def self.announce(announcement, options = {})
-     @@announce     = true
-     @@call_info   = caller_info(caller)
-     @@announcement = announcement
-     process_options(options)
-   end
+  # This function will activate monitoring of the next _supported_ loop.
+  #
+  # If a description is given as a parameter it will show at the
+  # beginning of the progress report.
+  def self.monitor(desc = "", options = {})
+    @@monitor     = true
+    @@desc        = desc
+    @@num_reports = options[:num_reports] || 100
+    @@call_info   = caller_info(caller)
+    process_options(options)
+  end
 
-   def self.get_announcement
-     @@announce    = false
-     @@announcement
-   end
+  def self.announce(announcement, options = {})
+    @@announce     = true
+    @@call_info   = caller_info(caller)
+    @@announcement = announcement
+    process_options(options)
+  end
 
-   def self.this_loop?
-     if @@stack_depth != nil
-       call_info = caller_info(caller, @@stack_depth + 2)
-       return false if call_info != @@call_info
-     end
+  def self.get_announcement
+    @@announce    = false
+    @@announcement
+  end
 
-     if @@skip > 0
-       @@skip -= 1
-       return false
-     else
-       return true
-     end
-   end
+  def self.this_loop?
+    if @@stack_depth != nil
+      call_info = caller_info(caller, @@stack_depth + 2)
+      return false if call_info != @@call_info
+    end
 
-   # Returns true if next loop must be monitored.
-   #
-   def self.monitor?
-     return @@monitor
-   end
+    if @@skip > 0
+      @@skip -= 1
+      return false
+    else
+      return true
+    end
+  end
 
-   def self.announce?
-     return @@announce
-   end
+  # Returns true if next loop must be monitored.
+  #
+  def self.monitor?
+    return @@monitor
+  end
 
-   def self.active?
-     return (monitor? || announce?) && this_loop?
-   end
+  def self.announce?
+    return @@announce
+  end
 
-   def self.add_progress_meter(max)
-     progress_meter = self.new(max, progress_meters.size)
+  def self.active?
+    return (monitor? || announce?) && this_loop?
+  end
 
-     progress_meters.push(progress_meter)
+  def self.add_progress_meter(max)
+    progress_meter = Bar.new(max, progress_meters.size, @@num_reports, @@desc)
+    @@monitor = false
 
-     progress_meter
-   end
+    progress_meters.push(progress_meter)
 
-   def self.remove_last_meter
-     progress_meters.pop
-   end
+    progress_meter
+  end
 
-   # Creates a new instance. Max is the total number of iterations of the
-   # loop. The depth represents how many other loops are above this one,
-   # this information is used to find the place to print the progress
-   # report.
-   #
-   def initialize(max,depth)
-     @max = max
-     @max = 1 if @max < 1
-     @current = 0
-     @time = Time.now
-     @last_report = -1
-     @num_reports = @@num_reports
-     @depth = depth
-     @desc = @@desc
-     @@monitor = false
-   end
+  def self.remove_last_meter
+    progress_meters.pop
+  end
 
-   # Used to register a new completed loop iteration.
-   #
-   def tick(step = nil)
-
-     if step.nil?
-       @current += 1
-     else
-       @current = step
-     end
-
-     percent = @current.to_f/ @max.to_f
-     if percent - @last_report > 1.to_f/@num_reports.to_f 
-       report
-       @last_report=percent
-     end
-
-     nil
-   end
-
-   # Prints de progress report. It backs up as many lines as the meters
-   # depth. Prints the progress as a line of dots, a percentage, time
-   # spent, and time left. And then goes moves the cursor back to its
-   # original line. Everything is printed to stderr.
-   #
-   def report
-
-     percent = @current.to_f/ @max.to_f
-     percent = 0.001 if percent < 0.001
-     if @desc != ""
-       indicator = @desc + ": "
-     else
-       indicator = "Progress "
-     end
-     indicator += "["
-     10.times{|i|
-       if i < percent * 10 then
-         indicator += "."
-       else
-         indicator += " "
-       end
-     }
-     indicator += "]   done #{(percent * 100).to_i}% "
-
-     eta =  (Time.now - @time)/percent * (1-percent)
-     eta = eta.to_i
-     eta = [eta/3600, eta/60 % 60, eta % 60].map{|t| t.to_s.rjust(2, '0')}.join(':')
-
-     used = (Time.now - @time).to_i
-     used = [used/3600, used/60 % 60, used % 60].map{|t| t.to_s.rjust(2, '0')}.join(':')
-
-     indicator += " (Time left #{eta} seconds) (Started #{used} seconds ago)"
-
-     $stderr.print("\033[#{@depth + 1}F\033[2K" + indicator + "\033[#{@depth + 1}E")
-   end
-
-   def self.print_announcement(message = nil)
-     return if message.nil?
-     total_depth = @@progress_meters.length + 1
-     $stderr.print("\033[#{total_depth}F\033[2K" + message + "\033[#{total_depth}E")
-   end
+  def self.print_announcement(message = nil)
+    return if message.nil?
+    total_depth = @@progress_meters.length + 1
+    $stderr.print("\033[#{total_depth}F\033[2K" + message + "\033[#{total_depth}E")
+  end
 end
 
 class Integer
