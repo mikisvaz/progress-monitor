@@ -69,7 +69,7 @@ module Progress
 
       indicator += " (Time left #{eta} seconds) (Started #{used} seconds ago)"
 
-      $stderr.print("\033[#{@depth + 1}F\033[2K" + indicator + "\033[#{@depth + 1}E")
+      STDERR.print("\033[#{@depth + 1}F\033[2K" + indicator + "\n\033[#{@depth + 2}E")
     end
   end
 end
