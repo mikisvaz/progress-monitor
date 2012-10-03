@@ -62,10 +62,10 @@ module Progress
 
       eta =  (Time.now - @time)/percent * (1-percent)
       eta = eta.to_i
-      eta = [eta/3600, eta/60 % 60, eta % 60].map{|t| t.to_s.rjust(2, '0')}.join(':')
+      eta = [eta/3600, eta/60 % 60, eta % 60].map{|t| "%02i" % t }.join(':')
 
       used = (Time.now - @time).to_i
-      used = [used/3600, used/60 % 60, used % 60].map{|t| t.to_s.rjust(2, '0')}.join(':')
+      used = [used/3600, used/60 % 60, used % 60].map{|t|  "%02i" % t }.join(':')
 
       indicator += " (Time left #{eta} seconds) (Started #{used} seconds ago)"
 
